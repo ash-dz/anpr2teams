@@ -1,47 +1,3 @@
-/*
-MIT License
-
-Copyright (c) 2021 Ash de Zylva & Tim Leyden
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
----
-
-OpenANPR to Teams Webhook Alert Proxy (ANPR2Teams)
-   Accepts OpenALPR alert payloads and sends a MessageCard to a Teams Webhook
-   and Power Automate HTTP trigger for further user processing.
-
-===============================================================================
-** HOW TO MAKE IT WORK **
-You will need to update 2 things (and a 3rd, optional thing):
-
- 1  Teams Webhook URL
-    (webhookUrl - Line 58)
-
- 2  Address for your OpenALPR installation (if not using Rekor's cloud service)
-    (a2tConstructedViewUrl - Line 101)
-
- 3  (Optional) Culture listed for locale-specific datetime format (ie, change en-AU to your locale)
-    (a2tDateTime - Line 108)
-===============================================================================
-*/
-
 #r "Newtonsoft.Json"
 
 using System.Net;
@@ -55,8 +11,8 @@ public static async Task<IActionResult> Run(HttpRequest req, ILogger log)
     // Write line to indicate we started (debug purposes)
     log.LogInformation("C# HTTP trigger function is processing a request.");
 
-    // Update this to the Teams Incoming Webhook URL
-    var webhookUrl = "https://empoweryourteam.webhook.office.com/webhookb2/81f4aa91-b557-4f85-b339-ff7a96fbcab3@1c73d81f-3d4c-43aa-931f-c06596737b9e/IncomingWebhook/0603eb14fb9b4ecd933c72e7a3343c92/8d013c56-22e6-4873-9d47-4672d2876b2f";
+    // Update this to the Teams Incoming Webhook URL - get it by setting up the Incoming Webhook connector in a channel
+    var webhookUrl = "https://<tenant>.webhook.office.com/webhookb2/<guid>/IncomingWebhook/<key>/<id>";
 
    // ** VARIABLE DETAILS **           ** WHAT ITS USED FOR IN THIS AZURE FUNCTION **
     string a2tPlate = null;         // The 'best' number plate value itself
@@ -107,7 +63,7 @@ public static async Task<IActionResult> Run(HttpRequest req, ILogger log)
 
     // Here we are taking the epoch value (a2tEpoch) and using it to derive an English (Australia) datetime string
     DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(a2tEpoch);
-    string a2tDateTime = dateTimeOffset.DateTime.ToString("U", CultureInfo.CreateSpecificCulture("en-AU"));
+    string a2tDateTime = dateTimeOffset.DateTime.AddHours(10).ToString("U", CultureInfo.CreateSpecificCulture("en-AU"));
 
     var httpClient = new HttpClient();
 
